@@ -5,15 +5,22 @@ export class Item {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 20 })
+  @Column({ length: 200 })
   name: string;
 
   @Column()
   brand: string;
 
-  @Column()
+  @Column('numeric')
   price: number;
 
   @Column()
+  store: string;
+}
+
+export interface rowItem {
+  name: string;
+  brand: string;
+  nominal: string;
   store: string;
 }

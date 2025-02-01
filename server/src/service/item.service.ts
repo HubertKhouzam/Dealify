@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Item } from '../database/items.entity';
+import { Item, rowItem } from '../database/items.entity';
 import * as fs from 'fs';
 import * as csv from 'csv-parser';
 
@@ -15,8 +15,19 @@ export class ItemsService {
   findAll(): Promise<Item[]> {
     return this.itemRepository.find();
   }
-  findOne(name: string): Promise<Item | null> {
-    return this.itemRepository.findOne({ where: { name } });
+  findOne(name: string): Promise<Item[] | null> {
+    return this.itemRepository
+      .createQueryBuilder('item')
+      .where('item.name ILIKE :searchTerm', { searchTerm: `%${name}%` }) // 🔍 Finds partial matches
+      .getMany();
+  }
+
+  async findItemsByFuzzyMatch(searchTerm: string): Promise<Item[]> {
+    return this.itemRepository
+      .createQueryBuilder('item')
+      .where(`similarity(item.name, :searchTerm) > 0.2`, { searchTerm })
+      .orderBy(`similarity(item.name, :searchTerm)`, 'DESC')
+      .getMany();
   }
 
   async processCsv(filePath: string): Promise<void> {
@@ -34,6 +45,7 @@ export class ItemsService {
         });
 
         stream.on('end', () => {
+          console.log('Total Items to Insert:', items.length);
           if (items.length > 0) {
             this.itemRepository
               .save(items)
@@ -55,26 +67,16 @@ export class ItemsService {
     });
   }
 
-  private createItemFromRow(row: Item): Item | null {
-    if (!row.name || !row.brand || !row.price || !row.store) {
+  private createItemFromRow(row: rowItem): Item | null {
+    if (!row.name || !row.brand || !row.nominal || !row.store) {
       return null;
     }
 
     return this.itemRepository.create({
       name: row.name,
       brand: row.brand,
-      price: row.price,
+      price: parseFloat(row.nominal),
       store: row.store,
     });
-  }
-
-  private async saveItemsToDatabase(items: Item[]): Promise<void> {
-    if (items.length > 0) {
-      await this.itemRepository.save(items);
-    }
-  }
-
-  private deleteFile(filePath: string): void {
-    fs.unlinkSync(filePath);
   }
 }
