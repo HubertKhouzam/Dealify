@@ -27,7 +27,6 @@ export class ItemsService {
         const stream = fs.createReadStream(filePath).pipe(csv());
 
         stream.on('data', (row) => {
-          console.log('Parsed Row:', row);
           const item = this.createItemFromRow(row);
           if (item) {
             items.push(item);
