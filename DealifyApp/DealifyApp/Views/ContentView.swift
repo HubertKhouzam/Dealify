@@ -143,11 +143,25 @@ struct CameraView2: View {
 // Sample locations for stores
 let sampleLocations: [StoreLocation] = [
     StoreLocation(name: "Maxi", latitude: 45.5088, longitude: -73.554),
-    StoreLocation(name: "Super C", latitude: 45.5017, longitude: -73.5673),
+    StoreLocation(name: "Maxi", latitude: 45.504974, longitude: -73.7097698),
+    StoreLocation(name: "Maxi", latitude: 45.4585, longitude: -73.66029),
+    StoreLocation(name: "Maxi", latitude: 45.517572, longitude: -73.77055),
+    StoreLocation(name: "Maxi", latitude: 45.541089, longitude: -73.631608),
+    StoreLocation(name: "Super C", latitude: 45.52073, longitude: -73.5673),
+    StoreLocation(name: "Super C", latitude: 45.5155983, longitude: -73.7675634),
+    StoreLocation(name: "Super C", latitude: 45.550559, longitude: -73.616101),
+    StoreLocation(name: "Super C", latitude: 45.4801326, longitude: -73.6478927),
+    StoreLocation(name: "Super C", latitude: 45.6023902, longitude: -73.7218227),
     StoreLocation(name: "IGA", latitude: 45.5231, longitude: -73.5817),
+    StoreLocation(name: "IGA", latitude: 45.4976893, longitude: -73.678498),
     StoreLocation(name: "METRO", latitude: 45.515, longitude: -73.575),
-    StoreLocation(name: "Provigo", latitude: 45.5015, longitude: -73.5725)
-
+    StoreLocation(name: "METRO", latitude: 45.4790321, longitude: -73.69254),
+    StoreLocation(name: "METRO", latitude: 45.5399458, longitude: -73.63661527),
+    StoreLocation(name: "METRO", latitude: 45.510347, longitude: -73.611071),
+    StoreLocation(name: "Provigo", latitude: 45.5015, longitude: -73.5725),
+    StoreLocation(name: "Provigo", latitude: 45.53083, longitude: -73.6620972),
+    StoreLocation(name: "Provigo", latitude: 45.5156519, longitude: -73.755459)
+    
 ]
 
 // MARK: - MapboxMapViewRepresentable
