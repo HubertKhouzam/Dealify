@@ -31,12 +31,29 @@ struct FloatingSearchBar: View {
     
     var body: some View {
         HStack {
-            TextField("Search for groceries...", text: $searchText)
-                .padding()
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .shadow(radius: 5)
+            // Search icon
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.white)
+            
+            // TextField with dynamic placeholder
+            ZStack(alignment: .leading) {
+                // Placeholder text
+                if searchText.isEmpty {
+                    Text("Search for groceries...")
+                        .foregroundColor(.white.opacity(0.7)) // Placeholder color
+                        .padding(.leading, 4) // Align with TextField text
+                }
+                
+                // TextField
+                TextField("", text: $searchText)
+                    .foregroundColor(.white) // Text color
+                    .tint(.white) // Cursor color
+            }
         }
+        .padding()
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 30))
+        .shadow(radius: 5)
         .padding(.horizontal)
         .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
         .padding(.top, 50)
@@ -109,39 +126,55 @@ struct DrawerView: View {
     @Binding var isExpanded: Bool
     @Binding var webView: WKWebView
     
+    // Constants for drawer heights
+    private let collapsedHeight: CGFloat = 100
+    private let expandedHeight: CGFloat = 400
+    private let thresholdHeight: CGFloat = 250
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            // Draggable handle
             Capsule()
                 .frame(width: 40, height: 5)
                 .foregroundColor(.gray)
-                .padding(5)
+                .padding(.vertical, 8)
                 .onTapGesture {
                     withAnimation {
                         isExpanded.toggle()
-                        drawerHeight = isExpanded ? 400 : 100
+                        drawerHeight = isExpanded ? expandedHeight : collapsedHeight
                     }
                 }
+            
+            // Header
             Text("Best Grocery Discounts")
                 .font(.headline)
                 .padding()
-                .frame(maxWidth: .infinity)
                 .background(Color.white)
             
+            // Expanded content
             if isExpanded {
-                Button("Montreal Eaton Centre") {
-                    webView.evaluateJavaScript("zoomToLocation(45.5088, -73.554)")
+                ScrollView {
+                    VStack(spacing: 16) {
+                        LocationButton(
+                            title: "Montreal Eaton Centre",
+                            subtitle: "10% off produce",
+                            action: { webView.evaluateJavaScript("zoomToLocation(45.5088, -73.554)") }
+                        )
+                        
+                        LocationButton(
+                            title: "Old Port of Montreal",
+                            subtitle: "Daily specials",
+                            action: { webView.evaluateJavaScript("zoomToLocation(45.5017, -73.5673)") }
+                        )
+                        
+                        LocationButton(
+                            title: "Jean-Talon Market",
+                            subtitle: "Local deals",
+                            action: { webView.evaluateJavaScript("zoomToLocation(45.5231, -73.5817)") }
+                        )
+                    }
+                    .padding()
                 }
-                .padding()
-                
-                Button("Old Port of Montreal") {
-                    webView.evaluateJavaScript("zoomToLocation(45.5017, -73.5673)")
-                }
-                .padding()
-                
-                Button("Jean-Talon Market") {
-                    webView.evaluateJavaScript("zoomToLocation(45.5231, -73.5817)")
-                }
-                .padding()
             }
             
             Spacer()
@@ -151,17 +184,48 @@ struct DrawerView: View {
         .cornerRadius(20)
         .shadow(radius: 10)
         .offset(y: UIScreen.main.bounds.height / 2 - drawerHeight / 2)
-        .gesture(DragGesture()
-                    .onChanged { value in
-                        let newHeight = max(100, min(400, drawerHeight - value.translation.height))
-                        drawerHeight = newHeight
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    let newHeight = max(collapsedHeight, min(expandedHeight, drawerHeight - value.translation.height))
+                    drawerHeight = newHeight
+                }
+                .onEnded { _ in
+                    withAnimation {
+                        isExpanded = drawerHeight > thresholdHeight
+                        drawerHeight = isExpanded ? expandedHeight : collapsedHeight
                     }
-                    .onEnded { _ in
-                        withAnimation {
-                            isExpanded = drawerHeight > 250
-                            drawerHeight = isExpanded ? 400 : 100
-                        }
-                    })
+                }
+        )
+    }
+}
+
+// Reusable LocationButton component
+struct LocationButton: View {
+    let title: String
+    let subtitle: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(10)
+            .shadow(radius: 2)
+        }
     }
 }
 
