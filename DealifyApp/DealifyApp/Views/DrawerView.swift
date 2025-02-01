@@ -30,7 +30,7 @@ struct DrawerView: View {
                     }
                 
                 if !viewModel.groceryItems.isEmpty {
-                    Text("\(viewModel.groceryItems.count) results found")
+                    Text("Showing top \(viewModel.groceryItems.count) most similar to your serached")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                         .padding(.bottom, 8)
