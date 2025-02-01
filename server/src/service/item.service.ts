@@ -15,8 +15,19 @@ export class ItemsService {
   findAll(): Promise<Item[]> {
     return this.itemRepository.find();
   }
-  findOne(name: string): Promise<Item | null> {
-    return this.itemRepository.findOne({ where: { name } });
+  findOne(name: string): Promise<Item[] | null> {
+    return this.itemRepository
+      .createQueryBuilder('item')
+      .where('item.name ILIKE :searchTerm', { searchTerm: `%${name}%` }) // 🔍 Finds partial matches
+      .getMany();
+  }
+
+  async findItemsByFuzzyMatch(searchTerm: string): Promise<Item[]> {
+    return this.itemRepository
+      .createQueryBuilder('item')
+      .where(`similarity(item.name, :searchTerm) > 0.2`, { searchTerm })
+      .orderBy(`similarity(item.name, :searchTerm)`, 'DESC')
+      .getMany();
   }
 
   async processCsv(filePath: string): Promise<void> {

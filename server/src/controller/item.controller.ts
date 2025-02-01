@@ -12,10 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('items')
 export class ItemsController {
-  constructor(
-    private readonly itemsService: ItemsService,
-    private readonly fileUploadService: FileUploadService,
-  ) {}
+  constructor(private readonly itemsService: ItemsService) {}
 
   @Get('/')
   getAllItems() {
@@ -25,6 +22,11 @@ export class ItemsController {
   @Get('/:name')
   getItemByName(@Param('name') name: string) {
     return this.itemsService.findOne(name);
+  }
+
+  @Get('/search/:search')
+  getItemsBySearch(@Param('search') search: string) {
+    return this.itemsService.findItemsByFuzzyMatch(search);
   }
 
   @Post('/upload')
@@ -37,6 +39,7 @@ export class ItemsController {
     }
 
     await this.itemsService.processCsv(file.path);
+    console.log('CSV file processed successfully');
     return { message: 'CSV file processed successfully' };
   }
 }
