@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Item } from '../database/items.entity';
+import { Item, rowItem } from '../database/items.entity';
 import * as fs from 'fs';
 import * as csv from 'csv-parser';
 
@@ -27,6 +27,7 @@ export class ItemsService {
         const stream = fs.createReadStream(filePath).pipe(csv());
 
         stream.on('data', (row) => {
+          console.log('Parsed Row:', row);
           const item = this.createItemFromRow(row);
           if (item) {
             items.push(item);
@@ -34,6 +35,7 @@ export class ItemsService {
         });
 
         stream.on('end', () => {
+          console.log('Total Items to Insert:', items.length);
           if (items.length > 0) {
             this.itemRepository
               .save(items)
@@ -55,26 +57,16 @@ export class ItemsService {
     });
   }
 
-  private createItemFromRow(row: Item): Item | null {
-    if (!row.name || !row.brand || !row.price || !row.store) {
+  private createItemFromRow(row: rowItem): Item | null {
+    if (!row.name || !row.brand || !row.nominal || !row.store) {
       return null;
     }
 
     return this.itemRepository.create({
       name: row.name,
       brand: row.brand,
-      price: row.price,
+      price: parseFloat(row.nominal),
       store: row.store,
     });
-  }
-
-  private async saveItemsToDatabase(items: Item[]): Promise<void> {
-    if (items.length > 0) {
-      await this.itemRepository.save(items);
-    }
-  }
-
-  private deleteFile(filePath: string): void {
-    fs.unlinkSync(filePath);
   }
 }

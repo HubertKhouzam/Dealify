@@ -17,3 +17,10 @@ export class Item {
   @Column()
   store: string;
 }
+
+export interface rowItem {
+  name: string;
+  brand: string;
+  nominal: string;
+  store: string;
+}
