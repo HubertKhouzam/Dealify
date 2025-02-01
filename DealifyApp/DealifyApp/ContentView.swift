@@ -1,53 +1,53 @@
 import SwiftUI
-import WebKit
+import MapboxMaps
+
+// MARK: - ContentView
 
 struct ContentView: View {
     @State private var drawerHeight: CGFloat = 100
     @State private var isDrawerExpanded = false
-    @State private var webView: WKWebView = WKWebView()
+    // Hold a reference to the Mapbox MapView (optional because it’s created asynchronously)
+    @State private var mapView: MapView? = nil
     
     var body: some View {
         ZStack {
-            VStack {
-                Spacer().frame(height: 10)
-                MapView(webView: $webView)
-            }
-            .edgesIgnoringSafeArea(.all)
-            
+            // Map view using Mapbox
+            MapboxMapViewRepresentable(mapView: $mapView)
+                .ignoresSafeArea()
+
+            // Floating search bar overlay
             VStack {
                 FloatingSearchBar()
                 Spacer()
             }
-            .edgesIgnoringSafeArea(.top)
+            .ignoresSafeArea(edges: .all)
             
-            DrawerView(drawerHeight: $drawerHeight, isExpanded: $isDrawerExpanded, webView: $webView)
-                .frame(maxWidth: UIScreen.main.bounds.width)
+            // Drawer with location buttons
+            DrawerView(drawerHeight: $drawerHeight, isExpanded: $isDrawerExpanded, mapView: $mapView)
         }
+        .ignoresSafeArea(edges: .all)
     }
 }
+
+// MARK: - FloatingSearchBar
 
 struct FloatingSearchBar: View {
     @State private var searchText = ""
     
     var body: some View {
         HStack {
-            // Search icon
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.white)
             
-            // TextField with dynamic placeholder
             ZStack(alignment: .leading) {
-                // Placeholder text
                 if searchText.isEmpty {
                     Text("Search for groceries...")
-                        .foregroundColor(.white.opacity(0.7)) // Placeholder color
-                        .padding(.leading, 4) // Align with TextField text
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.leading, 4)
                 }
-                
-                // TextField
                 TextField("", text: $searchText)
-                    .foregroundColor(.white) // Text color
-                    .tint(.white) // Cursor color
+                    .foregroundColor(.white)
+                    .tint(.white)
             }
         }
         .padding()
@@ -56,75 +56,66 @@ struct FloatingSearchBar: View {
         .shadow(radius: 5)
         .padding(.horizontal)
         .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
-        .padding(.top, 50)
+        .padding(.top, 0)
         .background(Color.clear)
         .position(x: UIScreen.main.bounds.width / 2, y: 100)
         .zIndex(1)
     }
 }
 
-struct MapView: UIViewRepresentable {
-    @Binding var webView: WKWebView
+// MARK: - MapboxMapViewRepresentable
+
+struct MapboxMapViewRepresentable: UIViewRepresentable {
+    @Binding var mapView: MapView?
     
-    func makeUIView(context: Context) -> WKWebView {
-        let htmlString = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta name='viewport' content='initial-scale=1.0, user-scalable=no'>
-            <script src='https://unpkg.com/leaflet/dist/leaflet.js'></script>
-            <link rel='stylesheet' href='https://unpkg.com/leaflet/dist/leaflet.css'/>
-            <style>
-                body { margin: 0; padding: 0; }
-                #map { width: 100vw; height: 100vh; }
-                .leaflet-popup-content-wrapper { border-radius: 10px; }
-                .leaflet-marker-icon {
-                                    color: red;
-                                    border-radius: 50%;
-                                    width: 27px !important;
-                                    height: 40px !important
-                                }
-            </style>
-        </head>
-        <body>
-            <div id='map'></div>
-            <script>
-                var map = L.map('map').setView([45.5017, -73.5673], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors',
-                    detectRetina: true
-                }).addTo(map);
-
-                var locations = [
-                    {lat: 45.5088, lon: -73.554, name: "Montreal Eaton Centre"},
-                    {lat: 45.5017, lon: -73.5673, name: "Old Port of Montreal"},
-                    {lat: 45.5231, lon: -73.5817, name: "Jean-Talon Market"}
-                ];
+    func makeUIView(context: Context) -> MapView {
+        // Configure Mapbox with your access token and style.
+        let resourceOptions = ResourceOptions(accessToken: "pk.eyJ1IjoiaGVpc2tldmluIiwiYSI6ImNtNm1vMGhidDBjaDgyd3EzNW5mZHh1b28ifQ.DNDca4RepMf9mYaiBsPnlw")
+        let mapInitOptions = MapInitOptions(resourceOptions: resourceOptions, styleURI: .streets)
+        let mapView = MapView(frame: .zero, mapInitOptions: mapInitOptions)
         
-                locations.forEach(function(location) {
-                    L.marker([location.lat, location.lon]).addTo(map)
-                        .bindPopup(`<b>${location.name}</b>`)
-                        .openPopup();
-                });
-
-                function zoomToLocation(lat, lon) {
-                    map.setView([lat, lon], 15);
-                }
-            </script>
-        </body>
-        </html>
-        """
-        webView.loadHTMLString(htmlString, baseURL: nil)
-        return webView
+        // Assign the created mapView to our binding (done asynchronously)
+        DispatchQueue.main.async {
+            self.mapView = mapView
+            addAnnotations(to: mapView)
+        }
+        return mapView
     }
     
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
+    func updateUIView(_ uiView: MapView, context: Context) {
+        // No dynamic updates needed for this example.
+    }
+    
+    // Add three markers using Mapbox’s Annotation API.
+    private func addAnnotations(to mapView: MapView) {
+        let pointAnnotationManager = mapView.annotations.makePointAnnotationManager()
+        var annotations = [PointAnnotation]()
+        
+        let locations = [
+            (lat: 45.5088, lon: -73.554, name: "Montreal Eaton Centre"),
+            (lat: 45.5017, lon: -73.5673, name: "Old Port of Montreal"),
+            (lat: 45.5231, lon: -73.5817, name: "Jean-Talon Market")
+        ]
+        
+        for location in locations {
+            var annotation = PointAnnotation(coordinate: CLLocationCoordinate2D(latitude: location.lat, longitude: location.lon))
+            // Use a system image for the marker (ensure you have a valid image)
+            if let image = UIImage(systemName: "mappin.circle.fill") {
+                annotation.image = .init(image: image, name: "mappin")
+            }
+            annotations.append(annotation)
+        }
+        
+        pointAnnotationManager.annotations = annotations
+    }
 }
+
+// MARK: - DrawerView
 
 struct DrawerView: View {
     @Binding var drawerHeight: CGFloat
     @Binding var isExpanded: Bool
-    @Binding var webView: WKWebView
+    @Binding var mapView: MapView?
     
     // Constants for drawer heights
     private let collapsedHeight: CGFloat = 100
@@ -151,26 +142,26 @@ struct DrawerView: View {
                 .padding()
                 .background(Color.white)
             
-            // Expanded content
+            // Expanded content: list of location buttons
             if isExpanded {
                 ScrollView {
                     VStack(spacing: 16) {
                         LocationButton(
                             title: "Montreal Eaton Centre",
                             subtitle: "10% off produce",
-                            action: { webView.evaluateJavaScript("zoomToLocation(45.5088, -73.554)") }
+                            action: { zoomToLocation(latitude: 45.5088, longitude: -73.554) }
                         )
                         
                         LocationButton(
                             title: "Old Port of Montreal",
                             subtitle: "Daily specials",
-                            action: { webView.evaluateJavaScript("zoomToLocation(45.5017, -73.5673)") }
+                            action: { zoomToLocation(latitude: 45.5017, longitude: -73.5673) }
                         )
                         
                         LocationButton(
                             title: "Jean-Talon Market",
                             subtitle: "Local deals",
-                            action: { webView.evaluateJavaScript("zoomToLocation(45.5231, -73.5817)") }
+                            action: { zoomToLocation(latitude: 45.5231, longitude: -73.5817) }
                         )
                     }
                     .padding()
@@ -198,9 +189,18 @@ struct DrawerView: View {
                 }
         )
     }
+    
+    // Zooms the map (if available) to the given coordinates with a zoom level of 15.
+    private func zoomToLocation(latitude: Double, longitude: Double) {
+        if let mapView = mapView {
+            let cameraOptions = CameraOptions(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), zoom: 15)
+            mapView.mapboxMap.setCamera(to: cameraOptions)
+        }
+    }
 }
 
-// Reusable LocationButton component
+// MARK: - LocationButton
+
 struct LocationButton: View {
     let title: String
     let subtitle: String
@@ -228,6 +228,8 @@ struct LocationButton: View {
         }
     }
 }
+
+// MARK: - Preview
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
