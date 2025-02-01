@@ -19,7 +19,7 @@ struct BookmarkItem: Identifiable, Codable {
     
     init(from groceryItem: GroceryItem) {
         self.id = groceryItem.id
-        self.name = groceryItem.name
+        self.name = groceryItem.text
         self.price = groceryItem.price
         self.store = groceryItem.store
         self.dateAdded = Date()

@@ -80,22 +80,18 @@ export class ItemsController {
     const formData = new FormData();
     formData.append('image', fs.createReadStream(imagePath), file.filename);
 
-    const flaskApiUrl = process.env.FLASK_API_URL;
+    const flaskApiUrl = `${process.env.FLASK_API_URL}/upload`;
     if (!flaskApiUrl) {
       throw new Error('FLASK_API_URL is not defined in .env');
     }
 
     try {
-      const response: FlaskResponseImage = await axios.post(
-        flaskApiUrl,
-        formData,
-        {
-          headers: { ...formData.getHeaders() },
-        },
-      );
+      const response: SearchResponse = await axios.post(flaskApiUrl, formData, {
+        headers: { ...formData.getHeaders() },
+      });
 
       await fs.promises.unlink(imagePath);
-      return this.itemsService.findItem(response.message);
+      return response;
     } catch (error: any) {
       console.error(
         'Error uploading to Flask:',

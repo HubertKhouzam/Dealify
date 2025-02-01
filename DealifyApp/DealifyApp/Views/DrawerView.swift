@@ -1,10 +1,3 @@
-//
-//  DrawerView.swift
-//  DealifyApp
-//
-//  Created by Hubert Khouzam on 2025-02-01.
-//
-
 import Foundation
 import SwiftUI
 import MapboxMaps
@@ -16,73 +9,74 @@ struct DrawerView: View {
     @Binding var storeLocations: [StoreLocation]
     @ObservedObject var viewModel: StoreLocationViewModel
     @ObservedObject var bookmarkManager: BookmarkManager
-
     
-    // Constants for drawer heights
     private let collapsedHeight: CGFloat = 100
-    private let expandedHeight: CGFloat = 400
+    private let expandedHeight: CGFloat = UIScreen.main.bounds.height * 0.8
     private let thresholdHeight: CGFloat = 250
     
     var body: some View {
         VStack(spacing: 0) {
-            // Draggable handle
-            Capsule()
-                .frame(width: 40, height: 5)
-                .foregroundColor(.gray)
-                .padding(.vertical, 8)
-                .onTapGesture {
-                    withAnimation {
-                        isExpanded.toggle()
-                        drawerHeight = isExpanded ? expandedHeight : collapsedHeight
-                    }
-                }
-            
-            // Results count
-            if !viewModel.groceryItems.isEmpty {
-                Text("\(viewModel.groceryItems.count) results found")
-                    .font(.subheadline)
+            // Handle and header
+            VStack {
+                Capsule()
+                    .frame(width: 40, height: 5)
                     .foregroundColor(.gray)
-                    .padding(.bottom, 8)
-            }
-            
-            // Product list
-            if isExpanded {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(viewModel.groceryItems, id: \.id) { item in
-                            if let location = storeLocations.first(where: { $0.name == item.store }) {
-                                ProductRow(
-                                            productName: item.name,
-                                            storeName: item.store,
-                                            price: item.price,
-                                            groceryItem: item,
-                                            action: {
-                                                zoomToLocation(latitude: location.latitude, longitude: location.longitude)
-                                            },
-                                            bookmarkManager: bookmarkManager
-                                        )
-                            }
+                    .padding(.vertical, 8)
+                    .onTapGesture {
+                        withAnimation {
+                            isExpanded.toggle()
+                            drawerHeight = isExpanded ? expandedHeight : collapsedHeight
                         }
                     }
-                    .padding(.horizontal)
-                }
-                .frame(maxHeight: .infinity)
-            } else {
-                // Preview of first few items when collapsed
-                if let firstItem = viewModel.groceryItems.first {
-                    Text(firstItem.name)
-                        .font(.headline)
-                        .padding(.bottom, 4)
+                
+                if !viewModel.groceryItems.isEmpty {
+                    Text("\(viewModel.groceryItems.count) results found")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 8)
                 }
             }
+            .background(Color.white)
             
+            // Main content
+            if isExpanded {
+                List(viewModel.groceryItems, id: \.id) { item in
+                    if let location = storeLocations.first(where: { $0.name == item.store }) {
+                        ProductRowImproved(
+                            rank: item.rank,
+                            productName: item.text,
+                            storeName: item.store,
+                            price: item.price,
+                            groceryItem: item,
+                            action: {
+                                zoomToLocation(latitude: location.latitude, longitude: location.longitude)
+                            },
+                            bookmarkManager: bookmarkManager
+                        )
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button {
+                                bookmarkManager.addBookmark(item)
+                            } label: {
+                                Label("Save", systemImage: "bookmark.fill")
+                            }
+                            .tint(.blue)
+                        }
+                    }
+                }
+                .listStyle(PlainListStyle())
+            } else {
+                if let firstItem = viewModel.groceryItems.first {
+                    ProductRowPreview(item: firstItem)
+                        .padding(.horizontal)
+                }
+            }
         }
         .frame(width: UIScreen.main.bounds.width, height: drawerHeight)
         .background(Color.white)
         .cornerRadius(20)
         .shadow(radius: 10)
         .offset(y: UIScreen.main.bounds.height / 2 - drawerHeight / 2)
-        .gesture(
+        .simultaneousGesture(
             DragGesture()
                 .onChanged { value in
                     let newHeight = max(collapsedHeight, min(expandedHeight, drawerHeight - value.translation.height))
@@ -107,9 +101,9 @@ struct DrawerView: View {
         }
     }
 }
-
-// MARK: - ProductRow
-struct ProductRow: View {
+// Improved Product Row with Rank
+struct ProductRowImproved: View {
+    let rank: Int
     let productName: String
     let storeName: String
     let price: String
@@ -117,103 +111,80 @@ struct ProductRow: View {
     let action: () -> Void
     @ObservedObject var bookmarkManager: BookmarkManager
     
-    @State private var offset: CGFloat = 0
-    @State private var isSwiped: Bool = false
+    var body: some View {
+        Button(action: action) {
+            HStack(alignment: .center, spacing: 12) {
+                // Rank circle
+                ZStack {
+                    Circle()
+                        .fill(Color.blue.opacity(0.1))
+                        .frame(width: 30, height: 30)
+                    Text("#\(rank)")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(productName)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    HStack {
+                        Image(systemName: "cart.fill")
+                            .foregroundColor(.blue)
+                            .font(.caption)
+                        Text(storeName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                Text(price)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 14))
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
+            .shadow(radius: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// Preview row for collapsed state
+struct ProductRowPreview: View {
+    let item: GroceryItem
     
     var body: some View {
-        ZStack {
-            // Background for swipe action
-            if isSwiped {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        withAnimation {
-                            bookmarkManager.addBookmark(groceryItem)
-                            isSwiped = false
-                            offset = 0
-                        }
-                    }) {
-                        Image(systemName: "bookmark.fill")
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                    }
-                }
-                .padding(.horizontal)
-            }
+        HStack {
+            Text("#\(item.rank)")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 8)
             
-            // Main content
-            Button(action: action) {
-                HStack(alignment: .center, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(productName)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                            .lineLimit(2)
-                        
-                        HStack {
-                            Image(systemName: "cart.fill")
-                                .foregroundColor(.blue)
-                                .font(.caption)
-                            Text(storeName)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    Text(price)
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 14))
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(12)
-                .shadow(radius: 2)
-                .offset(x: offset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { gesture in
-                            // Only handle horizontal swipes
-                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
-                                if gesture.translation.width < 0 {
-                                    offset = gesture.translation.width
-                                }
-                            }
-                        }
-                        .onEnded { gesture in
-                            // Only handle horizontal swipes
-                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
-                                withAnimation {
-                                    if gesture.translation.width < -100 {
-                                        offset = -100
-                                        isSwiped = true
-                                    } else {
-                                        offset = 0
-                                        isSwiped = false
-                                    }
-                                }
-                            }
-                        }
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                Button {
-                    print("Swipe action triggered")
-                    bookmarkManager.addBookmark(groceryItem)
-                } label: {
-                    Label("Save", systemImage: "bookmark.fill")
-                }
-                .tint(.blue)
-            }
+            Text(item.text)
+                .font(.subheadline)
+                .lineLimit(1)
+            
+            Spacer()
+            
+            Text(item.price)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.green)
         }
+        .padding(.vertical, 8)
     }
 }
