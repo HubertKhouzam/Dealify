@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Item } from './database/items.entity';
 import { ConfigModule } from '@nestjs/config';
 import { ItemsService } from './service/item.service';
+import { FileUploadService } from './service/file.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { ItemsService } from './service/item.service';
     TypeOrmModule.forFeature([Item]),
   ],
   controllers: [ItemsController],
-  providers: [ItemsService],
+  providers: [ItemsService, FileUploadService],
 })
 export class AppModule {}
