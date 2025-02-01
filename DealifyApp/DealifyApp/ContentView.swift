@@ -58,7 +58,7 @@ struct FloatingSearchBar: View {
         .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
         .padding(.top, 0)
         .background(Color.clear)
-        .position(x: UIScreen.main.bounds.width / 2, y: 100)
+        .position(x: UIScreen.main.bounds.width / 2, y: 200)
         .zIndex(1)
     }
 }
@@ -69,18 +69,29 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
     @Binding var mapView: MapView?
     
     func makeUIView(context: Context) -> MapView {
-        // Configure Mapbox with your access token and style.
-        let resourceOptions = ResourceOptions(accessToken: "pk.eyJ1IjoiaGVpc2tldmluIiwiYSI6ImNtNm1vMGhidDBjaDgyd3EzNW5mZHh1b28ifQ.DNDca4RepMf9mYaiBsPnlw")
-        let mapInitOptions = MapInitOptions(resourceOptions: resourceOptions, styleURI: .streets)
+        // Configure Mapbox with your access token
+        let resourceOptions = ResourceOptions(accessToken: "your_mapbox_access_token_here")
+        let mapInitOptions = MapInitOptions(resourceOptions: resourceOptions)
         let mapView = MapView(frame: .zero, mapInitOptions: mapInitOptions)
         
-        // Assign the created mapView to our binding (done asynchronously)
-        DispatchQueue.main.async {
-            self.mapView = mapView
-            addAnnotations(to: mapView)
+        // Load the map style
+        mapView.mapboxMap.loadStyleURI(StyleURI.streets) { result in
+            switch result {
+            case .success:
+                print("Map style loaded successfully")
+                DispatchQueue.main.async {
+                    addAnnotations(to: mapView)
+                }
+            case .failure(let error):
+                print("Failed to load map style: \(error)")
+            }
         }
+
+
         return mapView
     }
+
+
     
     func updateUIView(_ uiView: MapView, context: Context) {
         // No dynamic updates needed for this example.

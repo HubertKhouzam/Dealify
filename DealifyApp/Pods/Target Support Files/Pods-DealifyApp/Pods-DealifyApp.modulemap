@@ -1,6 +1,0 @@
-framework module Pods_DealifyApp {
-  umbrella header "Pods-DealifyApp-umbrella.h"
-
-  export *
-  module * { export * }
-}
