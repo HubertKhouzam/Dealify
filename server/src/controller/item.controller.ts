@@ -75,6 +75,8 @@ export class ItemsController {
       const response: FlaskResponse = await axios.post(flaskApiUrl, formData, {
         headers: { ...formData.getHeaders() },
       });
+
+      await fs.promises.unlink(imagePath);
       return this.itemsService.findItem(response.message);
     } catch (error: any) {
       console.error(
@@ -82,6 +84,11 @@ export class ItemsController {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error.response?.data || error.message,
       );
+
+      await fs.promises
+        .unlink(imagePath)
+        .catch((err) => console.error('Error deleting image file:', err));
+
       return { error: 'Failed to upload image to Flask API' };
     }
   }
