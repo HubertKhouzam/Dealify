@@ -11,7 +11,7 @@ import { FileUploadService } from 'src/service/file.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import axios from 'axios';
 import * as FormData from 'form-data';
-import { FlaskResponse } from 'src/Dto/flask.dto';
+import { FlaskResponseImage, SearchResponse } from 'src/Dto/flask.dto';
 import * as fs from 'fs';
 
 @Controller('items')
@@ -29,8 +29,21 @@ export class ItemsController {
   }
 
   @Get('/search/:search')
-  getItemsBySearch(@Param('search') search: string) {
-    return this.itemsService.findItemsByFuzzyMatch(search);
+  async getItemsBySearch(@Param('search') search: string) {
+    const flaskApiUrl = `${process.env.FLASK_API_URL}/search?query=${encodeURIComponent(search)}&top_n=5`;
+
+    if (!process.env.FLASK_API_URL) {
+      throw new Error('FLASK_API_URL is not defined in .env');
+    }
+
+    try {
+      const { data }: { data: SearchResponse } = await axios.get(flaskApiUrl);
+      console.log('Response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching from Flask API:', error);
+      throw new Error('Failed to fetch search results');
+    }
   }
 
   @Post('/upload')
@@ -72,9 +85,13 @@ export class ItemsController {
     }
 
     try {
-      const response: FlaskResponse = await axios.post(flaskApiUrl, formData, {
-        headers: { ...formData.getHeaders() },
-      });
+      const response: FlaskResponseImage = await axios.post(
+        flaskApiUrl,
+        formData,
+        {
+          headers: { ...formData.getHeaders() },
+        },
+      );
 
       await fs.promises.unlink(imagePath);
       return this.itemsService.findItem(response.message);

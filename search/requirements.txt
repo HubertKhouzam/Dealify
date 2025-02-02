@@ -1,5 +1,0 @@
-numpy
-pandas
-json
-rank_bm25
-nltk
