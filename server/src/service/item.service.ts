@@ -15,7 +15,7 @@ export class ItemsService {
   findAll(): Promise<Item[]> {
     return this.itemRepository.find();
   }
-  findOne(name: string): Promise<Item[] | null> {
+  findItem(name: string): Promise<Item[] | null> {
     return this.itemRepository
       .createQueryBuilder('item')
       .where('item.name ILIKE :searchTerm', { searchTerm: `%${name}%` }) // 🔍 Finds partial matches
