@@ -8,9 +8,6 @@ export class Item {
   @Column({ length: 200 })
   name: string;
 
-  @Column()
-  brand: string;
-
   @Column('numeric')
   price: number;
 
@@ -20,7 +17,6 @@ export class Item {
 
 export interface rowItem {
   name: string;
-  brand: string;
   nominal: string;
   store: string;
 }

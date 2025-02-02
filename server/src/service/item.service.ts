@@ -18,7 +18,7 @@ export class ItemsService {
   findItem(name: string): Promise<Item[] | null> {
     return this.itemRepository
       .createQueryBuilder('item')
-      .where('item.name ILIKE :searchTerm', { searchTerm: `%${name}%` }) // 🔍 Finds partial matches
+      .where('item.name ILIKE :searchTerm', { searchTerm: `%${name}%` })
       .getMany();
   }
 
@@ -39,6 +39,7 @@ export class ItemsService {
 
         stream.on('data', (row) => {
           const item = this.createItemFromRow(row);
+          console.log(item);
           if (item) {
             items.push(item);
           }
@@ -68,13 +69,12 @@ export class ItemsService {
   }
 
   private createItemFromRow(row: rowItem): Item | null {
-    if (!row.name || !row.brand || !row.nominal || !row.store) {
+    if (!row.name || !row.nominal || !row.store) {
       return null;
     }
 
     return this.itemRepository.create({
       name: row.name,
-      brand: row.brand,
       price: parseFloat(row.nominal),
       store: row.store,
     });
