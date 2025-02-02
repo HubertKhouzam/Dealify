@@ -15,13 +15,10 @@ The application provides seamless integration between a **SwiftUI front-end**, a
 
 ---
 
-## Tech Stack
+## Features
 
-- ✅ **SwiftUI iOS Application:** Modern UI with real-time data fetching for mobile application
-- ✅ **Node.js + Express API:** Handles all business logic
-- ✅ **Flask API:** Specialized for data processing & analytics
-- ✅ **Python Web Scraping:** Extracts real-time data from external sources
-- ✅ **Database Integration:** PostgreSQL database for efficient storage and retrieval
+- ✅ **Smart Price Comparison:** Automatically compares grocery prices across multiple locations in Montreal
+- ✅ **Instant Product Scanning:** Scan product tags to find the best available prices in real-time
 
 ---
 
