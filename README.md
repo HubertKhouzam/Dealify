@@ -2,6 +2,8 @@
 
 ## Overview
 
+Dealify simplifies grocery shopping by helping you find the best prices across multiple locations in Montreal. Instead of manually comparing prices, our platform does the research for you, ensuring you get the best deals effortlessly. With our real-time scanning feature, you can instantly check if a product is available at a lower price elsewhere by simply scanning its tag. Save money every week with minimal effort—let Dealify do the work for you!
+
 This repository contains a **full-stack application** with the following technologies:
 
 - **Front-end:** SwiftUI (iOS application)
@@ -13,7 +15,7 @@ The application provides seamless integration between a **SwiftUI front-end**, a
 
 ---
 
-## Features
+## Tech Stack
 
 - ✅ **SwiftUI iOS Application:** Modern UI with real-time data fetching for mobile application
 - ✅ **Node.js + Express API:** Handles all business logic
