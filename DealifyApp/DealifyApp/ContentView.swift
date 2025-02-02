@@ -57,7 +57,7 @@ struct FloatingSearchBar: View {
         .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
         .padding(.top, 0)
         .background(Color.clear)
-        .position(x: UIScreen.main.bounds.width / 2, y: 120)
+        .position(x: UIScreen.main.bounds.width / 2, y: 200)
         .zIndex(1)
     }
 }
@@ -111,15 +111,39 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
         
         for location in locations {
             var annotation = PointAnnotation(coordinate: CLLocationCoordinate2D(latitude: location.lat, longitude: location.lon))
-            // Use a system image for the marker (ensure you have a valid image)
-            if let image = UIImage(systemName: "mappin.circle.fill") {
-                annotation.image = .init(image: image, name: "mappin")
+            
+            // Create a circular image with a system icon inside
+            if let image = createCircularImage(systemName: "cart.fill", backgroundColor: .blue, size: CGSize(width: 40, height: 40)) {
+                annotation.image = .init(image: image, name: "custom_marker")
             }
-            annotation.textField = location.name // Add the name as a label
+            
             annotations.append(annotation)
         }
         
         pointAnnotationManager.annotations = annotations
+    }
+    
+    // Helper function to create a circular image with a system icon inside
+    private func createCircularImage(systemName: String, backgroundColor: UIColor, size: CGSize) -> UIImage? {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            // Draw a circle
+            let rect = CGRect(origin: .zero, size: size)
+            backgroundColor.setFill()
+            context.cgContext.fillEllipse(in: rect)
+            
+            // Draw the system icon in the center
+            if let iconImage = UIImage(systemName: systemName)?.withTintColor(.white, renderingMode: .alwaysOriginal) {
+                let iconSize = CGSize(width: size.width * 0.6, height: size.height * 0.6)
+                let iconRect = CGRect(
+                    x: (size.width - iconSize.width) / 2,
+                    y: (size.height - iconSize.height) / 2,
+                    width: iconSize.width,
+                    height: iconSize.height
+                )
+                iconImage.draw(in: iconRect)
+            }
+        }
     }
 }
 
