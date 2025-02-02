@@ -3,6 +3,6 @@ flask
 gunicorn
 numpy
 pandas
-json
+jsonlib
 rank_bm25
 nltk
