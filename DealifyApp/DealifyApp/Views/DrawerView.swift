@@ -15,6 +15,8 @@ struct DrawerView: View {
     @Binding var mapView: MapView?
     @Binding var storeLocations: [StoreLocation]
     @ObservedObject var viewModel: StoreLocationViewModel
+    @ObservedObject var bookmarkManager: BookmarkManager
+
     
     // Constants for drawer heights
     private let collapsedHeight: CGFloat = 100
@@ -50,13 +52,15 @@ struct DrawerView: View {
                         ForEach(viewModel.groceryItems, id: \.id) { item in
                             if let location = storeLocations.first(where: { $0.name == item.store }) {
                                 ProductRow(
-                                    productName: item.name,
-                                    storeName: item.store,
-                                    price: item.price,
-                                    action: {
-                                        zoomToLocation(latitude: location.latitude, longitude: location.longitude)
-                                    }
-                                )
+                                            productName: item.name,
+                                            storeName: item.store,
+                                            price: item.price,
+                                            groceryItem: item,
+                                            action: {
+                                                zoomToLocation(latitude: location.latitude, longitude: location.longitude)
+                                            },
+                                            bookmarkManager: bookmarkManager
+                                        )
                             }
                         }
                     }
@@ -97,7 +101,7 @@ struct DrawerView: View {
         if let mapView = mapView {
             let cameraOptions = CameraOptions(
                 center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-                zoom: 15
+                zoom: 14
             )
             mapView.camera.ease(to: cameraOptions, duration: 1.0)
         }
@@ -109,12 +113,13 @@ struct ProductRow: View {
     let productName: String
     let storeName: String
     let price: String
+    let groceryItem: GroceryItem
     let action: () -> Void
+    @ObservedObject var bookmarkManager: BookmarkManager
     
     var body: some View {
         Button(action: action) {
             HStack(alignment: .center, spacing: 12) {
-                // Product info
                 VStack(alignment: .leading, spacing: 4) {
                     Text(productName)
                         .font(.headline)
@@ -133,7 +138,6 @@ struct ProductRow: View {
                 
                 Spacer()
                 
-                // Price
                 Text(price)
                     .font(.title3)
                     .fontWeight(.bold)
@@ -149,5 +153,13 @@ struct ProductRow: View {
             .shadow(radius: 2)
         }
         .buttonStyle(PlainButtonStyle())
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button {
+                bookmarkManager.addBookmark(groceryItem)
+            } label: {
+                Label("Save", systemImage: "bookmark.fill")
+            }
+            .tint(.blue)
+        }
     }
 }

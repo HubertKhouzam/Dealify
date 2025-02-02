@@ -9,7 +9,9 @@ struct ContentView: View {
     @State private var isDrawerExpanded = false
     @State private var mapView: MapView? = nil
     @State private var searchText = ""
+    @State private var showingBookmarks = false
     @StateObject private var viewModel = StoreLocationViewModel()
+    @StateObject private var bookmarkManager = BookmarkManager()
     
     
     var body: some View {
@@ -38,10 +40,35 @@ struct ContentView: View {
                 isExpanded: $isDrawerExpanded,
                 mapView: $mapView,
                 storeLocations: $viewModel.storeLocations,
-                viewModel: viewModel
+                viewModel: viewModel,
+                bookmarkManager: bookmarkManager
             )
+            
+            // Floating bookmark button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button {
+                        showingBookmarks = true
+                    } label: {
+                        Image(systemName: "bookmark.fill")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color.blue)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, drawerHeight + 20)
+                }
+            }
         }
         .ignoresSafeArea(edges: .all)
+        .sheet(isPresented: $showingBookmarks) {
+            BookmarkView(bookmarkManager: bookmarkManager)
+        }
     }
 }
 
