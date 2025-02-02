@@ -121,7 +121,7 @@ class CameraModel: NSObject, ObservableObject {
             }
             
             if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
+                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
                     print("Upload successful")
                     if let data = data, let responseString = String(data: data, encoding: .utf8) {
                         print("Response: \(responseString)")
