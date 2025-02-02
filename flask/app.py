@@ -41,6 +41,7 @@ def search_bm25(query):
     if not query:
         return jsonify({"error": "Query parameter is required"}), 400
     
+    print('Processing: ' + query)
     tokenized_query = word_tokenize(query.lower())
     scores = bm25.get_scores(tokenized_query)
     top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:10]
