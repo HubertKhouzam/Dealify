@@ -24,9 +24,9 @@ def upload_file():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
     response = describe_image(file_path)
-    
     print(response)
-    return jsonify({'message': 'Search term generated', 'term': response})
+    results = search_bm25(response)
+    return jsonify(results)
 
 # Semantic search
 nltk.download("punkt_tab", quiet=True)
