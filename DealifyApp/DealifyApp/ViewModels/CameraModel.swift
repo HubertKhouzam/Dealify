@@ -90,7 +90,6 @@ class CameraModel: NSObject, ObservableObject {
         self.isSaved = true
         uploadPic(image: image) {[weak self] groceryItems in
             DispatchQueue.main.async {
-                // Call the completion handler if it exists
                 self?.uploadCompletion?(groceryItems)
             }
         }
@@ -105,7 +104,25 @@ class CameraModel: NSObject, ObservableObject {
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        // ... rest of your upload code remains the same ...
+        // Convert UIImage to JPEG data
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+
+        var body = Data()
+
+        // Append form-data boundary
+        let boundaryPrefix = "--(boundary)\r\n"
+        body.append(boundaryPrefix.data(using: .utf8)!)
+
+        let fileName = "image.jpg"
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+
+        // End boundary
+        body.append("--(boundary)--\r\n".data(using: .utf8)!)
+
+        request.httpBody = body
         
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
