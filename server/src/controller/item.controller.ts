@@ -86,16 +86,12 @@ export class ItemsController {
     }
 
     try {
-      const response: FlaskResponseImage = await axios.post(
-        flaskApiUrl,
-        formData,
-        {
-          headers: { ...formData.getHeaders() },
-        },
-      );
+      const response: SearchResponse = await axios.post(flaskApiUrl, formData, {
+        headers: { ...formData.getHeaders() },
+      });
 
       await fs.promises.unlink(imagePath);
-      return this.itemsService.findItem(response.message);
+      return response;
     } catch (error: any) {
       console.error(
         'Error uploading to Flask:',
