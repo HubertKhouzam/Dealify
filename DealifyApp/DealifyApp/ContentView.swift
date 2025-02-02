@@ -6,7 +6,6 @@ import MapboxMaps
 struct ContentView: View {
     @State private var drawerHeight: CGFloat = 100
     @State private var isDrawerExpanded = false
-    // Hold a reference to the Mapbox MapView (optional because it’s created asynchronously)
     @State private var mapView: MapView? = nil
     
     var body: some View {
@@ -58,7 +57,7 @@ struct FloatingSearchBar: View {
         .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
         .padding(.top, 0)
         .background(Color.clear)
-        .position(x: UIScreen.main.bounds.width / 2, y: 200)
+        .position(x: UIScreen.main.bounds.width / 2, y: 120)
         .zIndex(1)
     }
 }
@@ -70,7 +69,7 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
     
     func makeUIView(context: Context) -> MapView {
         // Configure Mapbox with your access token
-        let resourceOptions = ResourceOptions(accessToken: "your_mapbox_access_token_here")
+        let resourceOptions = ResourceOptions(accessToken: "pk.eyJ1IjoiaGVpc2tldmluIiwiYSI6ImNtNm1vMGhidDBjaDgyd3EzNW5mZHh1b28ifQ.DNDca4RepMf9mYaiBsPnlw")
         let mapInitOptions = MapInitOptions(resourceOptions: resourceOptions)
         let mapView = MapView(frame: .zero, mapInitOptions: mapInitOptions)
         
@@ -87,11 +86,13 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
             }
         }
 
+        // Update the mapView binding
+        DispatchQueue.main.async {
+            self.mapView = mapView
+        }
 
         return mapView
     }
-
-
     
     func updateUIView(_ uiView: MapView, context: Context) {
         // No dynamic updates needed for this example.
@@ -114,6 +115,7 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
             if let image = UIImage(systemName: "mappin.circle.fill") {
                 annotation.image = .init(image: image, name: "mappin")
             }
+            annotation.textField = location.name // Add the name as a label
             annotations.append(annotation)
         }
         
@@ -160,19 +162,28 @@ struct DrawerView: View {
                         LocationButton(
                             title: "Montreal Eaton Centre",
                             subtitle: "10% off produce",
-                            action: { zoomToLocation(latitude: 45.5088, longitude: -73.554) }
+                            action: {
+                                print("Button tapped: Montreal Eaton Centre")
+                                zoomToLocation(latitude: 45.5088, longitude: -73.554)
+                            }
                         )
                         
                         LocationButton(
                             title: "Old Port of Montreal",
                             subtitle: "Daily specials",
-                            action: { zoomToLocation(latitude: 45.5017, longitude: -73.5673) }
+                            action: {
+                                print("Button tapped: Old Port of Montreal")
+                                zoomToLocation(latitude: 45.5017, longitude: -73.5673)
+                            }
                         )
                         
                         LocationButton(
                             title: "Jean-Talon Market",
                             subtitle: "Local deals",
-                            action: { zoomToLocation(latitude: 45.5231, longitude: -73.5817) }
+                            action: {
+                                print("Button tapped: Jean-Talon Market")
+                                zoomToLocation(latitude: 45.5231, longitude: -73.5817)
+                            }
                         )
                     }
                     .padding()
@@ -204,8 +215,16 @@ struct DrawerView: View {
     // Zooms the map (if available) to the given coordinates with a zoom level of 15.
     private func zoomToLocation(latitude: Double, longitude: Double) {
         if let mapView = mapView {
+            print("Zooming to location: (\(latitude), \(longitude))")
             let cameraOptions = CameraOptions(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), zoom: 15)
-            mapView.mapboxMap.setCamera(to: cameraOptions)
+            
+            // Animate the camera movement
+            mapView.camera.ease(to: cameraOptions, duration: 1.0) { (_) in
+                // Completion handler if needed
+                print("Camera movement completed")
+            }
+        } else {
+            print("mapView is nil")
         }
     }
 }
@@ -237,6 +256,8 @@ struct LocationButton: View {
             .cornerRadius(10)
             .shadow(radius: 2)
         }
+        .buttonStyle(PlainButtonStyle()) // Ensure the button doesn't have any default styling
+        .contentShape(Rectangle()) // Make the entire button area tappable
     }
 }
 
