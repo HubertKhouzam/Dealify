@@ -13,12 +13,13 @@ def upload_file():
     if 'image' not in request.files:
         return jsonify({'error': 'No image file uploaded'}), 400
 
+    print('Processing request')
     file = request.files['image']
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
     response = describe_image(file_path)
     
-
+    print(response)
     return jsonify({'message': 'Search term generated', 'term': response})
 
 if __name__ == '__main__':
