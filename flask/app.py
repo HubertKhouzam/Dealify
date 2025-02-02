@@ -25,7 +25,17 @@ def upload_file():
     file.save(file_path)
     response = describe_image(file_path)
     print(response)
-    results = search_bm25(response)
+    tokenized_query = word_tokenize(response.lower())
+    scores = bm25.get_scores(tokenized_query)
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:10]
+    results = [
+        {
+            "rank": rank + 1,
+            "text": items[idx],
+            "price": df.loc[df['name'] == items[idx], 'price'].values[0] if not df.loc[df['name'] == items[idx], 'price'].empty else None,
+            "store": df.loc[df['name'] == items[idx], 'store'].values[0] if not df.loc[df['name'] == items[idx], 'store'].empty else None
+        }
+        for rank, idx in enumerate(top_indices)]
     return jsonify(results)
 
 # Semantic search
