@@ -27,7 +27,7 @@ def describe_image(image_path):
                     "content": [
                         {
                             "type": "text", 
-                            "text": "Extract the product name from the label. No punctuation. Only the product name. In lowercase. I don't want any abbreviations. For example a label with gr. apple should be green apple "
+                            "text": "Extract the product name from the label. No punctuation. Only the product name. In lowercase. I don't want any abbreviations. For example a label with gr. apple should be green apple. No brand name. If the label isn't in English, translate to english "
                         },
                         {
                             "type": "image_url",
