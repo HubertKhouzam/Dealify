@@ -85,7 +85,7 @@ class CameraModel: NSObject, ObservableObject {
     }
     
     func uploadPic(image: UIImage) {
-        guard let url = URL(string: "https://dealify-n5sl.onrender.com/upload") else { return }
+        guard let url = URL(string: "https://dealify-n5sl.onrender.com/items/image") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
