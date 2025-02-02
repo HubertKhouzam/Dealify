@@ -1,15 +1,14 @@
 import SwiftUI
 import MapboxMaps
 
-// MARK: - ContentView
-
 struct ContentView: View {
     @State private var drawerHeight: CGFloat = 100
     @State private var isDrawerExpanded = false
     @State private var mapView: MapView? = nil
     @State private var searchText = ""
     @State private var storeLocations: [StoreLocation] = []
-    
+    @FocusState private var isSearchFieldFocused: Bool // Track search bar focus
+
     var body: some View {
         ZStack {
             // Map view using Mapbox
@@ -18,19 +17,21 @@ struct ContentView: View {
 
             // Floating search bar overlay
             VStack {
-                FloatingSearchBar(searchText: $searchText, onSearch: fetchStoreLocations)
+                FloatingSearchBar(searchText: $searchText, isSearchFieldFocused: $isSearchFieldFocused, onSearch: fetchStoreLocations)
                 Spacer()
             }
             .ignoresSafeArea(edges: .all)
             
             // Drawer with location buttons
-            DrawerView(drawerHeight: $drawerHeight, isExpanded: $isDrawerExpanded, mapView: $mapView, storeLocations: $storeLocations)
+            DrawerView(drawerHeight: $drawerHeight, isExpanded: $isDrawerExpanded, mapView: $mapView, storeLocations: $storeLocations, onSearch: {
+                isSearchFieldFocused = true // Focus the search bar when the button is pressed
+            })
         }
         .ignoresSafeArea(edges: .all)
     }
     
     // Fetch store locations based on the search text
-    private func fetchStoreLocations() {
+    func fetchStoreLocations() {
         guard !searchText.isEmpty else { return }
         
         let urlString = "https://dealify-n5sl.onrender.com/items/\(searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
@@ -41,7 +42,6 @@ struct ContentView: View {
                 print("Error fetching data: \(error)")
                 return
             }
-            
             guard let data = data else {
                 print("No data received")
                 return
@@ -63,17 +63,13 @@ struct ContentView: View {
     }
 }
 
-// MARK: - GroceryItem
-
 struct GroceryItem: Codable {
     let id: Int
     let name: String
     let brand: String
-    let price: String // Price is a string
+    let price: String
     let store: String
 }
-
-// MARK: - StoreLocation
 
 struct StoreLocation: Identifiable {
     let id = UUID()
@@ -90,11 +86,10 @@ let sampleLocations: [StoreLocation] = [
     StoreLocation(name: "METRO", latitude: 45.515, longitude: -73.575)
 ]
 
-// MARK: - FloatingSearchBar
-
 struct FloatingSearchBar: View {
     @Binding var searchText: String
-    var onSearch: () -> Void
+    @FocusState.Binding var isSearchFieldFocused: Bool // Enables focus control
+    var onSearch: () -> Void // Accepts a search function
     
     var body: some View {
         HStack {
@@ -110,6 +105,7 @@ struct FloatingSearchBar: View {
                 TextField("", text: $searchText, onCommit: onSearch)
                     .foregroundColor(.white)
                     .tint(.white)
+                    .focused($isSearchFieldFocused) // Allows button to focus search bar
             }
         }
         .padding()
@@ -124,8 +120,6 @@ struct FloatingSearchBar: View {
         .zIndex(1)
     }
 }
-
-// MARK: - MapboxMapViewRepresentable
 
 struct MapboxMapViewRepresentable: UIViewRepresentable {
     @Binding var mapView: MapView?
@@ -205,6 +199,7 @@ struct DrawerView: View {
     @Binding var isExpanded: Bool
     @Binding var mapView: MapView?
     @Binding var storeLocations: [StoreLocation]
+    var onSearch: () -> Void // Accepts search trigger function
     
     // Constants for drawer heights
     private let collapsedHeight: CGFloat = 100
@@ -225,11 +220,48 @@ struct DrawerView: View {
                     }
                 }
             
-            // Header
-            Text("Best Grocery Discounts")
-                .font(.headline)
-                .padding()
-                .background(Color.white)
+            // Header with two buttons
+            HStack(spacing: 16) {
+                Button(action: onSearch) { // Calls the passed function from ContentView
+                    HStack {
+                        Image(systemName: "magnifyingglass") // Search icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.white)
+                        
+                        Text("Search")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black)
+                    .cornerRadius(30)
+                }
+                
+                Button(action: {
+                    print("My Food List button tapped")
+                }) {
+                    HStack {
+                        Image(systemName: "list.bullet") // List icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.white)
+                        
+                        Text("My Food List")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black)
+                    .cornerRadius(10)
+                }
+            }
+            .padding()
+            .background(Color.white)
             
             // Expanded content: list of location buttons
             if isExpanded {
