@@ -11,7 +11,7 @@ import { FileUploadService } from 'src/service/file.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import axios from 'axios';
 import * as FormData from 'form-data';
-import { FlaskResponseImage, SearchResponse } from 'src/Dto/flask.dto';
+import { SearchResponse } from 'src/Dto/flask.dto';
 import * as fs from 'fs';
 
 @Controller('items')
@@ -86,12 +86,12 @@ export class ItemsController {
     }
 
     try {
-      const response: SearchResponse = await axios.post(flaskApiUrl, formData, {
+      const response = await axios.post(flaskApiUrl, formData, {
         headers: { ...formData.getHeaders() },
       });
 
       await fs.promises.unlink(imagePath);
-      return response;
+      return response.data;
     } catch (error: any) {
       console.error(
         'Error uploading to Flask:',
