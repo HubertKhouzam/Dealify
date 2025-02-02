@@ -1,18 +1,19 @@
 import SwiftUI
+import AVFoundation
 import MapboxMaps
 
 // MARK: - ContentView
-
 struct ContentView: View {
     @State private var drawerHeight: CGFloat = 100
     @State private var isDrawerExpanded = false
     @State private var mapView: MapView? = nil
     @State private var searchText = ""
     @State private var showingBookmarks = false
+    @State private var isCameraViewActive = false // State variable for camera navigation
+    @State private var showCameraAccessAlert = false // State variable for camera access alert
     @StateObject private var viewModel = StoreLocationViewModel()
     @StateObject private var bookmarkManager = BookmarkManager()
-    
-    
+
     var body: some View {
         ZStack {
             // Map view using Mapbox
@@ -20,8 +21,8 @@ struct ContentView: View {
                 mapView: $mapView,
                 storeLocations: $viewModel.storeLocations
             )
-                .ignoresSafeArea()
-            
+            .ignoresSafeArea()
+
             VStack {
                 // Search bar
                 FloatingSearchBar(
@@ -31,7 +32,7 @@ struct ContentView: View {
                 Spacer()
             }
             .ignoresSafeArea(edges: .all)
-            
+
             // Products drawer
             DrawerView(
                 drawerHeight: $drawerHeight,
@@ -41,10 +42,57 @@ struct ContentView: View {
                 viewModel: viewModel,
                 bookmarkManager: bookmarkManager
             )
-            
-            // Floating bookmark button
+
+            // Floating buttons
             VStack {
                 Spacer()
+
+                // Camera FAB
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        print("Camera button tapped") // Debug print
+
+                        // Check camera authorization status
+                        switch AVCaptureDevice.authorizationStatus(for: .video) {
+                        case .authorized:
+                            print("Camera access authorized")
+                            self.isCameraViewActive = true // Navigate to CameraView
+                        case .notDetermined:
+                            print("Camera access not determined")
+                            AVCaptureDevice.requestAccess(for: .video) { granted in
+                                DispatchQueue.main.async {
+                                    if granted {
+                                        print("Camera access granted")
+                                        self.isCameraViewActive = true // Navigate to CameraView
+                                    } else {
+                                        print("Camera access denied")
+                                        self.showCameraAccessAlert = true // Show alert
+                                    }
+                                }
+                            }
+                        case .denied:
+                            print("Camera access denied")
+                            self.showCameraAccessAlert = true // Show alert
+                        case .restricted:
+                            print("Camera access restricted")
+                        @unknown default:
+                            print("Unknown camera authorization status")
+                        }
+                    }) {
+                        Image(systemName: "camera.fill")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color.green)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 20)
+                }
+
+                // Bookmark FAB
                 HStack {
                     Spacer()
                     Button {
@@ -59,7 +107,7 @@ struct ContentView: View {
                             .shadow(radius: 4)
                     }
                     .padding(.trailing, 20)
-                    .padding(.bottom, drawerHeight + 20)
+                    .padding(.bottom, drawerHeight + 20) // Adjust for drawer height
                 }
             }
         }
@@ -67,9 +115,26 @@ struct ContentView: View {
         .sheet(isPresented: $showingBookmarks) {
             BookmarkView(bookmarkManager: bookmarkManager)
         }
+        .alert(isPresented: $showCameraAccessAlert) {
+            Alert(
+                title: Text("Camera Access Denied"),
+                message: Text("Please grant camera access in Settings to use this feature."),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .fullScreenCover(isPresented: $isCameraViewActive) {
+            CameraView() // Full-screen camera view
+        }
     }
 }
 
+// MARK: - CameraView
+struct CameraView2: View {
+    var body: some View {
+        Text("Camera View")
+            .navigationBarTitle("Camera", displayMode: .inline)
+    }
+}
 
 // Sample locations for stores
 let sampleLocations: [StoreLocation] = [
@@ -79,19 +144,17 @@ let sampleLocations: [StoreLocation] = [
     StoreLocation(name: "METRO", latitude: 45.515, longitude: -73.575)
 ]
 
-
 // MARK: - MapboxMapViewRepresentable
-
 struct MapboxMapViewRepresentable: UIViewRepresentable {
     @Binding var mapView: MapView?
     @Binding var storeLocations: [StoreLocation]
-    
+
     // Montreal coordinates
     private let montrealCenter = CLLocationCoordinate2D(latitude: 45.5017, longitude: -73.5673)
-    
+
     func makeUIView(context: Context) -> MapView {
         let resourceOptions = ResourceOptions(accessToken: "pk.eyJ1IjoiaGVpc2tldmluIiwiYSI6ImNtNm1vMGhidDBjaDgyd3EzNW5mZHh1b28ifQ.DNDca4RepMf9mYaiBsPnlw")
-        
+
         // Create camera options to set initial position
         let cameraOptions = CameraOptions(
             center: montrealCenter,
@@ -99,43 +162,42 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
             bearing: 0,
             pitch: 0
         )
-        
+
         // Include camera options in map initialization
         let mapInitOptions = MapInitOptions(
             resourceOptions: resourceOptions,
             cameraOptions: cameraOptions,
             styleURI: StyleURI.streets
         )
-        
+
         let mapView = MapView(frame: .zero, mapInitOptions: mapInitOptions)
-        
+
         // Update the mapView binding
         DispatchQueue.main.async {
             self.mapView = mapView
         }
-
         return mapView
     }
-    
+
     func updateUIView(_ uiView: MapView, context: Context) {
         // Add or update markers when storeLocations changes
         let pointAnnotationManager = uiView.annotations.makePointAnnotationManager()
         var annotations = [PointAnnotation]()
-        
+
         for location in storeLocations {
             var annotation = PointAnnotation(coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
-            
+
             // Create a circular image with a system icon inside
             if let image = createCircularImage(systemName: "cart.fill", backgroundColor: .blue, size: CGSize(width: 40, height: 40)) {
                 annotation.image = .init(image: image, name: "custom_marker")
             }
-            
+
             annotations.append(annotation)
         }
-        
+
         pointAnnotationManager.annotations = annotations
     }
-    
+
     // Helper function to create a circular image with a system icon inside
     private func createCircularImage(systemName: String, backgroundColor: UIColor, size: CGSize) -> UIImage? {
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -144,7 +206,7 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
             let rect = CGRect(origin: .zero, size: size)
             backgroundColor.setFill()
             context.cgContext.fillEllipse(in: rect)
-            
+
             // Draw the system icon in the center
             if let iconImage = UIImage(systemName: systemName)?.withTintColor(.white, renderingMode: .alwaysOriginal) {
                 let iconSize = CGSize(width: size.width * 0.6, height: size.height * 0.6)
@@ -160,15 +222,13 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
     }
 }
 
-
 // MARK: - LocationButton
-
 struct LocationButton: View {
     let productName: String    // New: Product name
     let storeName: String     // Changed: Store name (was title)
     let price: String         // New: Price
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {
@@ -197,12 +257,10 @@ struct LocationButton: View {
         .contentShape(Rectangle())
     }
 }
-// MARK: - Preview
 
+// MARK: - Preview
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-            return ContentView()
-        }
+        ContentView()
+    }
 }
-
-

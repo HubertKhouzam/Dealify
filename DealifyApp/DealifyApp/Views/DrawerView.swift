@@ -66,6 +66,7 @@ struct DrawerView: View {
                     }
                     .padding(.horizontal)
                 }
+                .frame(maxHeight: .infinity)
             } else {
                 // Preview of first few items when collapsed
                 if let firstItem = viewModel.groceryItems.first {
@@ -75,7 +76,6 @@ struct DrawerView: View {
                 }
             }
             
-            Spacer()
         }
         .frame(width: UIScreen.main.bounds.width, height: drawerHeight)
         .background(Color.white)
@@ -117,49 +117,103 @@ struct ProductRow: View {
     let action: () -> Void
     @ObservedObject var bookmarkManager: BookmarkManager
     
+    @State private var offset: CGFloat = 0
+    @State private var isSwiped: Bool = false
+    
     var body: some View {
-        Button(action: action) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(productName)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-                    
-                    HStack {
-                        Image(systemName: "cart.fill")
-                            .foregroundColor(.blue)
-                            .font(.caption)
-                        Text(storeName)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+        ZStack {
+            // Background for swipe action
+            if isSwiped {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        withAnimation {
+                            bookmarkManager.addBookmark(groceryItem)
+                            isSwiped = false
+                            offset = 0
+                        }
+                    }) {
+                        Image(systemName: "bookmark.fill")
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(12)
                     }
                 }
-                
-                Spacer()
-                
-                Text(price)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 14))
+                .padding(.horizontal)
             }
-            .padding()
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .shadow(radius: 2)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button {
-                bookmarkManager.addBookmark(groceryItem)
-            } label: {
-                Label("Save", systemImage: "bookmark.fill")
+            
+            // Main content
+            Button(action: action) {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(productName)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .lineLimit(2)
+                        
+                        HStack {
+                            Image(systemName: "cart.fill")
+                                .foregroundColor(.blue)
+                                .font(.caption)
+                            Text(storeName)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Text(price)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                    
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 14))
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(12)
+                .shadow(radius: 2)
+                .offset(x: offset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { gesture in
+                            // Only handle horizontal swipes
+                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
+                                if gesture.translation.width < 0 {
+                                    offset = gesture.translation.width
+                                }
+                            }
+                        }
+                        .onEnded { gesture in
+                            // Only handle horizontal swipes
+                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
+                                withAnimation {
+                                    if gesture.translation.width < -100 {
+                                        offset = -100
+                                        isSwiped = true
+                                    } else {
+                                        offset = 0
+                                        isSwiped = false
+                                    }
+                                }
+                            }
+                        }
+                )
             }
-            .tint(.blue)
+            .buttonStyle(PlainButtonStyle())
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button {
+                    print("Swipe action triggered")
+                    bookmarkManager.addBookmark(groceryItem)
+                } label: {
+                    Label("Save", systemImage: "bookmark.fill")
+                }
+                .tint(.blue)
+            }
         }
     }
 }
