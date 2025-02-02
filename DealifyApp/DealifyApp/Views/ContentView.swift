@@ -4,16 +4,22 @@ import MapboxMaps
 // MARK: - ContentView
 
 struct ContentView: View {
+    @EnvironmentObject var locationManager: LocationManager
     @State private var drawerHeight: CGFloat = 100
     @State private var isDrawerExpanded = false
     @State private var mapView: MapView? = nil
     @State private var searchText = ""
     @StateObject private var viewModel = StoreLocationViewModel()
     
+    
     var body: some View {
         ZStack {
-            // Map view
-            MapboxMapViewRepresentable(mapView: $mapView, storeLocations: $viewModel.storeLocations)
+            // Map view using Mapbox
+            MapboxMapViewRepresentable(
+                mapView: $mapView,
+                storeLocations: $viewModel.storeLocations,
+                userLocation: $locationManager.userLocation
+            )
                 .ignoresSafeArea()
             
             VStack {
@@ -54,6 +60,7 @@ let sampleLocations: [StoreLocation] = [
 struct MapboxMapViewRepresentable: UIViewRepresentable {
     @Binding var mapView: MapView?
     @Binding var storeLocations: [StoreLocation]
+    @Binding var userLocation: CLLocationCoordinate2D?
     
     // Montreal coordinates
     private let montrealCenter = CLLocationCoordinate2D(latitude: 45.5017, longitude: -73.5673)
@@ -101,6 +108,17 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
             
             annotations.append(annotation)
         }
+        
+        if let userLocation = userLocation {
+                var userAnnotation = PointAnnotation(coordinate: userLocation)
+                
+                // User location marker (Red with a location icon)
+                if let image = createCircularImage(systemName: "location.fill", backgroundColor: .blue, size: CGSize(width: 40, height: 40)) {
+                    userAnnotation.image = .init(image: image, name: "user_marker")
+                }
+                
+                annotations.append(userAnnotation)
+            }
         
         pointAnnotationManager.annotations = annotations
     }
@@ -170,6 +188,16 @@ struct LocationButton: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        let previewLocationManager = LocationManagerPreview()
+            return ContentView()
+                .environmentObject(previewLocationManager as LocationManager)
+        }
+}
+
+class LocationManagerPreview: LocationManager {
+    override init() {
+        super.init()
+        // Set Montreal coordinates synchronously to avoid preview issues
+        self.userLocation = CLLocationCoordinate2D(latitude: 45.5017, longitude: -73.5673)
     }
 }
