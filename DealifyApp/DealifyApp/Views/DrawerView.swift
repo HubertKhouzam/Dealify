@@ -30,39 +30,40 @@ struct DrawerView: View {
                     }
                 
                 if !viewModel.groceryItems.isEmpty {
-                    Text("Showing top \(viewModel.groceryItems.count) most similar to your serached")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .padding(.bottom, 8)
-                }
-            }
+                                    // CHANGED THIS TEXT TO REFLECT IMAGE RESULTS
+                                    Text("Showing \(viewModel.groceryItems.count) items from your image")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                        .padding(.bottom, 8)
+                                }
+                            }
             .background(Color.white)
             
             // Main content
             if isExpanded {
-                List(viewModel.groceryItems, id: \.id) { item in
-                    if let location = storeLocations.first(where: { $0.name == item.store }) {
-                        ProductRowImproved(
-                            rank: item.rank,
-                            productName: item.text,
-                            storeName: item.store,
-                            price: item.price,
-                            groceryItem: item,
-                            action: {
-                                zoomToLocation(latitude: location.latitude, longitude: location.longitude)
-                            },
-                            bookmarkManager: bookmarkManager
-                        )
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button {
-                                bookmarkManager.addBookmark(item)
-                            } label: {
-                                Label("Save", systemImage: "bookmark.fill")
+                    List(viewModel.groceryItems, id: \.id) { item in
+                        if let location = storeLocations.first(where: { $0.name == item.store }) {
+                            ProductRowImproved(
+                                rank: item.rank,
+                                productName: item.text,
+                                storeName: item.store,
+                                price: item.price,
+                                groceryItem: item,
+                                action: {
+                                    zoomToLocation(latitude: location.latitude, longitude: location.longitude)
+                                },
+                                bookmarkManager: bookmarkManager
+                            )
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button {
+                                    bookmarkManager.addBookmark(item)
+                                } label: {
+                                    Label("Save", systemImage: "bookmark.fill")
+                                }
+                                .tint(.blue)
                             }
-                            .tint(.blue)
                         }
                     }
-                }
                 .listStyle(PlainListStyle())
             } else {
                 if let firstItem = viewModel.groceryItems.first {

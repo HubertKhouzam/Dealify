@@ -126,10 +126,10 @@ struct ContentView: View {
             )
         }
         .fullScreenCover(isPresented: $isCameraViewActive) {
-            CameraView() // Full-screen camera view
+                CameraView(viewModel: viewModel)
+            }
         }
     }
-}
 
 
 // MARK: - CameraView

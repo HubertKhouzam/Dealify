@@ -11,6 +11,7 @@ import SwiftUI
 struct CameraView: View {
     @StateObject var camera = CameraModel()
     @Environment(\.presentationMode) var presentationMode
+    @ObservedObject var viewModel: StoreLocationViewModel 
     
     var body: some View {
         ZStack {
@@ -80,7 +81,11 @@ struct CameraView: View {
                 .padding(.bottom, 30)
             }
         }
-        .onAppear(perform: camera.check)
+        .onAppear {
+        camera.uploadCompletion = { groceryItems in
+            viewModel.groceryItems = groceryItems
+            presentationMode.wrappedValue.dismiss()
+        }
         .alert(isPresented: $camera.alert) {
             Alert(title: Text("Please enable camera access"))
         }
