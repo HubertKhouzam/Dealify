@@ -82,10 +82,10 @@ struct CameraView: View {
             }
         }
         .onAppear {
-        camera.uploadCompletion = { groceryItems in
-            viewModel.groceryItems = groceryItems
-            presentationMode.wrappedValue.dismiss()
-        }
+            camera.uploadCompletion = { groceryItems in
+                viewModel.groceryItems = groceryItems
+                presentationMode.wrappedValue.dismiss()
+            }}
         .alert(isPresented: $camera.alert) {
             Alert(title: Text("Please enable camera access"))
         }
