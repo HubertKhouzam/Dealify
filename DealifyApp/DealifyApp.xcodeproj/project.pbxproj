@@ -33,9 +33,22 @@
 		32E83DCD2D4E912B0002298C /* DealifyAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DealifyAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		322875D52D4FA217006157C3 /* Exceptions for "DealifyApp" folder in "DealifyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 32E83DB22D4E91280002298C /* DealifyApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		32E83DB52D4E91280002298C /* DealifyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				322875D52D4FA217006157C3 /* Exceptions for "DealifyApp" folder in "DealifyApp" target */,
+			);
 			path = DealifyApp;
 			sourceTree = "<group>";
 		};
