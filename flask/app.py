@@ -45,10 +45,15 @@ def search_bm25(query):
     tokenized_query = word_tokenize(query.lower())
     scores = bm25.get_scores(tokenized_query)
     top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:10]
-    results = [{"rank": rank + 1, 
-                "text": items[idx], 
-                "price": df.loc[df['name'] == items[idx], 'price'].values[0] if not df.loc[df['name'] == items[idx], 'price'].empty else None}
-                for rank, idx in enumerate(top_indices)]
+    results = [
+        {
+            "rank": rank + 1,
+            "text": items[idx],
+            "price": df.loc[df['name'] == items[idx], 'price'].values[0] if not df.loc[df['name'] == items[idx], 'price'].empty else None,
+            "store": df.loc[df['name'] == items[idx], 'store'].values[0] if not df.loc[df['name'] == items[idx], 'store'].empty else None
+        }
+        for rank, idx in enumerate(top_indices)]
+
     
     return jsonify(results)
 
