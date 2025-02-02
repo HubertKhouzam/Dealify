@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - GroceryItem
 
-struct GroceryItem: Codable {
+struct GroceryItem: Codable, Identifiable {
     let id: Int
     let name: String
     let brand: String
@@ -25,3 +25,4 @@ struct StoreLocation: Identifiable {
     let latitude: Double
     let longitude: Double
 }
+

@@ -1,17 +1,10 @@
-//
-//  StoreLocationViewModel.swift
-//  DealifyApp
-//
-//  Created by Hubert Khouzam on 2025-02-01.
-//
-
+// StoreLocationViewModel.swift
 import Foundation
-
-import SwiftUI
 import Combine
 
 class StoreLocationViewModel: ObservableObject {
     @Published var storeLocations: [StoreLocation] = []
+    @Published var groceryItems: [GroceryItem] = []  // Add this line
     
     func fetchStoreLocations(searchText: String) {
         guard !searchText.isEmpty else { return }
@@ -33,6 +26,7 @@ class StoreLocationViewModel: ObservableObject {
             do {
                 let items = try JSONDecoder().decode([GroceryItem].self, from: data)
                 DispatchQueue.main.async {
+                    self?.groceryItems = items  // Store the grocery items
                     self?.storeLocations = items.compactMap { item in
                         sampleLocations.first { $0.name == item.store }
                     }

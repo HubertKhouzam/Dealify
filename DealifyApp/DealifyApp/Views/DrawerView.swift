@@ -14,6 +14,7 @@ struct DrawerView: View {
     @Binding var isExpanded: Bool
     @Binding var mapView: MapView?
     @Binding var storeLocations: [StoreLocation]
+    @ObservedObject var viewModel: StoreLocationViewModel
     
     // Constants for drawer heights
     private let collapsedHeight: CGFloat = 100
@@ -34,32 +35,39 @@ struct DrawerView: View {
                     }
                 }
             
-            // Header
-            HStack {
-                Image(systemName: "trash")
-                    .foregroundColor(.black)
-                
-                Text("Delete")
-                    .foregroundColor(.black)
-                    .padding(.leading, 4)
-                    
+            // Results count
+            if !viewModel.groceryItems.isEmpty {
+                Text("\(viewModel.groceryItems.count) results found")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 8)
             }
             
-            // Expanded content: list of location buttons
+            // Product list
             if isExpanded {
                 ScrollView {
-                    VStack(spacing: 16) {
-                        ForEach(storeLocations) { location in
-                            LocationButton(
-                                title: location.name,
-                                subtitle: "Tap to view location",
-                                action: {
-                                    zoomToLocation(latitude: location.latitude, longitude: location.longitude)
-                                }
-                            )
+                    VStack(spacing: 12) {
+                        ForEach(viewModel.groceryItems, id: \.id) { item in
+                            if let location = storeLocations.first(where: { $0.name == item.store }) {
+                                ProductRow(
+                                    productName: item.name,
+                                    storeName: item.store,
+                                    price: item.price,
+                                    action: {
+                                        zoomToLocation(latitude: location.latitude, longitude: location.longitude)
+                                    }
+                                )
+                            }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal)
+                }
+            } else {
+                // Preview of first few items when collapsed
+                if let firstItem = viewModel.groceryItems.first {
+                    Text(firstItem.name)
+                        .font(.headline)
+                        .padding(.bottom, 4)
                 }
             }
             
@@ -85,19 +93,61 @@ struct DrawerView: View {
         )
     }
     
-    // Zooms the map (if available) to the given coordinates with a zoom level of 15.
     private func zoomToLocation(latitude: Double, longitude: Double) {
         if let mapView = mapView {
-            print("Zooming to location: (\(latitude), \(longitude))")
-            let cameraOptions = CameraOptions(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), zoom: 15)
-            
-            // Animate the camera movement
-            mapView.camera.ease(to: cameraOptions, duration: 1.0) { (_) in
-                // Completion handler if needed
-                print("Camera movement completed")
-            }
-        } else {
-            print("mapView is nil")
+            let cameraOptions = CameraOptions(
+                center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+                zoom: 15
+            )
+            mapView.camera.ease(to: cameraOptions, duration: 1.0)
         }
+    }
+}
+
+// MARK: - ProductRow
+struct ProductRow: View {
+    let productName: String
+    let storeName: String
+    let price: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(alignment: .center, spacing: 12) {
+                // Product info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(productName)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                    
+                    HStack {
+                        Image(systemName: "cart.fill")
+                            .foregroundColor(.blue)
+                            .font(.caption)
+                        Text(storeName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                // Price
+                Text(price)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 14))
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
+            .shadow(radius: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }

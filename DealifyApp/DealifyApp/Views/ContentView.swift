@@ -12,23 +12,33 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Map view using Mapbox
+            // Map view
             MapboxMapViewRepresentable(mapView: $mapView, storeLocations: $viewModel.storeLocations)
                 .ignoresSafeArea()
-
-            // Floating search bar overlay
+            
             VStack {
-                FloatingSearchBar(searchText: $searchText, onSearch: { viewModel.fetchStoreLocations(searchText: searchText) })
+                // Search bar
+                FloatingSearchBar(
+                    searchText: $searchText,
+                    onSearch: { viewModel.fetchStoreLocations(searchText: searchText) }
+                )
                 Spacer()
             }
             .ignoresSafeArea(edges: .all)
             
-            // Drawer with location buttons
-            DrawerView(drawerHeight: $drawerHeight, isExpanded: $isDrawerExpanded, mapView: $mapView, storeLocations: $viewModel.storeLocations)
+            // Products drawer
+            DrawerView(
+                drawerHeight: $drawerHeight,
+                isExpanded: $isDrawerExpanded,
+                mapView: $mapView,
+                storeLocations: $viewModel.storeLocations,
+                viewModel: viewModel
+            )
         }
         .ignoresSafeArea(edges: .all)
     }
 }
+
 
 // Sample locations for stores
 let sampleLocations: [StoreLocation] = [
@@ -123,22 +133,27 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
 // MARK: - LocationButton
 
 struct LocationButton: View {
-    let title: String
-    let subtitle: String
+    let productName: String    // New: Product name
+    let storeName: String     // Changed: Store name (was title)
+    let price: String         // New: Price
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.subheadline)
+                    Text(productName)
+                        .font(.headline)
                         .foregroundColor(.primary)
-                    Text(subtitle)
+                    Text(storeName)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 Spacer()
+                Text(price)
+                    .font(.subheadline)
+                    .foregroundColor(.green)
+                    .padding(.trailing, 8)
                 Image(systemName: "chevron.right")
                     .foregroundColor(.gray)
             }
@@ -147,11 +162,10 @@ struct LocationButton: View {
             .cornerRadius(10)
             .shadow(radius: 2)
         }
-        .buttonStyle(PlainButtonStyle()) // Ensure the button doesn't have any default styling
-        .contentShape(Rectangle()) // Make the entire button area tappable
+        .buttonStyle(PlainButtonStyle())
+        .contentShape(Rectangle())
     }
 }
-
 // MARK: - Preview
 
 struct ContentView_Previews: PreviewProvider {
