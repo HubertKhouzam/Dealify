@@ -43,7 +43,7 @@ def search_bm25(query):
     
     tokenized_query = word_tokenize(query.lower())
     scores = bm25.get_scores(tokenized_query)
-    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:5]
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:10]
     results = [{"rank": rank + 1, "text": items[idx]} for rank, idx in enumerate(top_indices)]
     
     return jsonify(results)
