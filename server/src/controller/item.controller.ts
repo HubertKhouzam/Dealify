@@ -80,7 +80,7 @@ export class ItemsController {
     const formData = new FormData();
     formData.append('image', fs.createReadStream(imagePath), file.filename);
 
-    const flaskApiUrl = process.env.FLASK_API_URL;
+    const flaskApiUrl = `${process.env.FLASK_API_URL}/upload`;
     if (!flaskApiUrl) {
       throw new Error('FLASK_API_URL is not defined in .env');
     }
