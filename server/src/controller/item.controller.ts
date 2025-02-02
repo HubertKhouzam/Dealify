@@ -42,4 +42,16 @@ export class ItemsController {
     console.log('CSV file processed successfully');
     return { message: 'CSV file processed successfully' };
   }
+
+  @Post('image')
+  @UseInterceptors(FileInterceptor('image'))
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      return { message: 'No image uploaded' };
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    return { message: 'Image uploaded successfully' };
+  }
 }
