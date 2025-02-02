@@ -29,16 +29,17 @@ export class ItemsController {
   }
 
   @Get('/search/:search')
-  async getItemsBySearch(@Param('search') search: string) {
-    const flaskApiUrl = `${process.env.FLASK_API_URL}/search?query=${encodeURIComponent(search)}&top_n=5`;
+  async getItemsBySearch(
+    @Param('search') search: string,
+  ): Promise<SearchResponse> {
+    const flaskApiUrl = `${process.env.FLASK_API_URL}/search/${encodeURIComponent(search)}`;
 
     if (!process.env.FLASK_API_URL) {
       throw new Error('FLASK_API_URL is not defined in .env');
     }
 
     try {
-      const { data }: { data: SearchResponse } = await axios.get(flaskApiUrl);
-      console.log('Response:', data);
+      const { data } = await axios.get<SearchResponse>(flaskApiUrl);
       return data;
     } catch (error) {
       console.error('Error fetching from Flask API:', error);
