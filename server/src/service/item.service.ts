@@ -31,41 +31,69 @@ export class ItemsService {
   }
 
   async processCsv(filePath: string): Promise<void> {
-    const items: Item[] = [];
+    const batchSize = 1000;
+    let items: Item[] = [];
+    let currentBatch: Item[] = [];
 
     return new Promise((resolve, reject) => {
-      try {
-        const stream = fs.createReadStream(filePath).pipe(csv());
-
-        stream.on('data', (row) => {
+      const stream = fs
+        .createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (row) => {
           const item = this.createItemFromRow(row);
-          console.log(item);
           if (item) {
-            items.push(item);
+            currentBatch.push(item);
+            if (currentBatch.length >= batchSize) {
+              items.push(...currentBatch);
+              currentBatch = [];
+            }
           }
-        });
-
-        stream.on('end', () => {
-          console.log('Total Items to Insert:', items.length);
-          if (items.length > 0) {
-            this.itemRepository
-              .save(items)
-              .then(() => {
-                fs.unlinkSync(filePath);
-                resolve();
-              })
-              .catch((error: Error) => reject(error));
-          } else {
-            fs.unlinkSync(filePath);
-            resolve();
+        })
+        .on('end', () => {
+          if (currentBatch.length > 0) {
+            items.push(...currentBatch);
           }
-        });
 
-        stream.on('error', (error) => reject(error));
-      } catch (error) {
-        reject(new Error(`Failed to process file: ${String(error)}`));
-      }
+          // Process all batches after stream is complete
+          this.processAllBatches(items, batchSize)
+            .then(() => {
+              fs.unlinkSync(filePath);
+              resolve();
+            })
+            .catch((error: Error) => {
+              reject(error);
+            });
+        })
+        .on('error', (error) => {
+          reject(new Error(`Failed to process file: ${String(error)}`));
+        });
     });
+  }
+
+  private async processAllBatches(
+    items: Item[],
+    batchSize: number,
+  ): Promise<void> {
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      await this.saveBatch(batch);
+      console.log(
+        `Processed batch ${i / batchSize + 1}: ${batch.length} items`,
+      );
+    }
+  }
+
+  private async saveBatch(items: Item[]): Promise<void> {
+    try {
+      await this.itemRepository
+        .createQueryBuilder()
+        .insert()
+        .into(Item)
+        .values(items)
+        .execute();
+    } catch (error) {
+      throw new Error(`Failed to save batch: ${String(error)}`);
+    }
   }
 
   private createItemFromRow(row: rowItem): Item | null {
