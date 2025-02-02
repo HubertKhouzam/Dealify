@@ -45,22 +45,29 @@ struct MapboxMapViewRepresentable: UIViewRepresentable {
     @Binding var mapView: MapView?
     @Binding var storeLocations: [StoreLocation]
     
+    // Montreal coordinates
+    private let montrealCenter = CLLocationCoordinate2D(latitude: 45.5017, longitude: -73.5673)
+    
     func makeUIView(context: Context) -> MapView {
-        // Configure Mapbox with your access token
         let resourceOptions = ResourceOptions(accessToken: "pk.eyJ1IjoiaGVpc2tldmluIiwiYSI6ImNtNm1vMGhidDBjaDgyd3EzNW5mZHh1b28ifQ.DNDca4RepMf9mYaiBsPnlw")
-        let mapInitOptions = MapInitOptions(resourceOptions: resourceOptions)
+        
+        // Create camera options to set initial position
+        let cameraOptions = CameraOptions(
+            center: montrealCenter,
+            zoom: 12.0, // Adjust this value to set the initial zoom level
+            bearing: 0,
+            pitch: 0
+        )
+        
+        // Include camera options in map initialization
+        let mapInitOptions = MapInitOptions(
+            resourceOptions: resourceOptions,
+            cameraOptions: cameraOptions,
+            styleURI: StyleURI.streets
+        )
+        
         let mapView = MapView(frame: .zero, mapInitOptions: mapInitOptions)
         
-        // Load the map style
-        mapView.mapboxMap.loadStyleURI(StyleURI.streets) { result in
-            switch result {
-            case .success:
-                print("Map style loaded successfully")
-            case .failure(let error):
-                print("Failed to load map style: \(error)")
-            }
-        }
-
         // Update the mapView binding
         DispatchQueue.main.async {
             self.mapView = mapView
