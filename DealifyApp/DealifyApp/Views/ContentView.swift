@@ -13,7 +13,9 @@ struct ContentView: View {
     @State private var showCameraAccessAlert = false // State variable for camera access alert
     @StateObject private var viewModel = StoreLocationViewModel()
     @StateObject private var bookmarkManager = BookmarkManager()
-
+    @State private var uploadedGroceryItems: [GroceryItem] = []
+    @State private var isShowingUploadedItems = false
+    
     var body: some View {
         ZStack {
             // Map view using Mapbox
@@ -30,6 +32,7 @@ struct ContentView: View {
                     onSearch: { viewModel.fetchStoreLocations(searchText: searchText) }
                 )
                 Spacer()
+                
             }
             .ignoresSafeArea(edges: .all)
 
@@ -127,6 +130,7 @@ struct ContentView: View {
         }
     }
 }
+
 
 // MARK: - CameraView
 struct CameraView2: View {

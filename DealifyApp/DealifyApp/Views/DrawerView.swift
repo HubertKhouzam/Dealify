@@ -101,6 +101,7 @@ struct DrawerView: View {
         }
     }
 }
+
 // Improved Product Row with Rank
 struct ProductRowImproved: View {
     let rank: Int
