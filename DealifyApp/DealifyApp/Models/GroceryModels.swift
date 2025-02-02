@@ -10,11 +10,11 @@ import Foundation
 // MARK: - GroceryItem
 
 struct GroceryItem: Codable, Identifiable {
-    let id: Int
-    let name: String
-    let brand: String
-    let price: String // Price is a string
-    let store: String
+    let text: String // Corresponds to the "text" key in JSON
+    let price: String // Corresponds to the "price" key in JSON
+    let rank: Int
+    let store: String // Corresponds to the "store" key in JSON
+    var id: Int {rank}
 }
 
 // MARK: - StoreLocation

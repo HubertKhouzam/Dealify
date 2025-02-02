@@ -138,10 +138,12 @@ struct CameraView2: View {
 
 // Sample locations for stores
 let sampleLocations: [StoreLocation] = [
-    StoreLocation(name: "MAXI", latitude: 45.5088, longitude: -73.554),
-    StoreLocation(name: "SUPER C", latitude: 45.5017, longitude: -73.5673),
+    StoreLocation(name: "Maxi", latitude: 45.5088, longitude: -73.554),
+    StoreLocation(name: "Super C", latitude: 45.5017, longitude: -73.5673),
     StoreLocation(name: "IGA", latitude: 45.5231, longitude: -73.5817),
-    StoreLocation(name: "METRO", latitude: 45.515, longitude: -73.575)
+    StoreLocation(name: "METRO", latitude: 45.515, longitude: -73.575),
+    StoreLocation(name: "Provigo", latitude: 45.5015, longitude: -73.5725)
+
 ]
 
 // MARK: - MapboxMapViewRepresentable
