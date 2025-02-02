@@ -12,6 +12,7 @@ class CameraModel: NSObject, ObservableObject {
     @Published var preview: AVCaptureVideoPreviewLayer!
     @Published var isSaved = false
     @Published var picData = Data(count: 0)
+    
     var uploadCompletion: (([GroceryItem]) -> Void)?
     
     func check() {
@@ -52,6 +53,10 @@ class CameraModel: NSObject, ObservableObject {
             }
             
             self.session.commitConfiguration()
+            
+            DispatchQueue.global(qos: .background).async {
+               self.session.startRunning()
+           }
         } catch {
             print(error.localizedDescription)
         }
@@ -67,14 +72,14 @@ class CameraModel: NSObject, ObservableObject {
     }
     
     func retake() {
-        DispatchQueue.main.async {
-            self.session.stopRunning()
-            self.isTaken = false
-            self.isSaved = false
-            self.picData = Data()
-            
-            DispatchQueue.global(qos: .background).async {
-                self.session.startRunning()
+        DispatchQueue.global(qos: .background).async {
+            self.session.startRunning()
+            DispatchQueue.main.async {
+                withAnimation {
+                    self.isTaken = false
+                    self.isSaved = false
+                    self.picData = Data()
+                }
             }
         }
     }

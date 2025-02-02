@@ -82,6 +82,7 @@ struct CameraView: View {
             }
         }
         .onAppear {
+            camera.check()
             camera.uploadCompletion = { groceryItems in
                 viewModel.groceryItems = groceryItems
                 presentationMode.wrappedValue.dismiss()
