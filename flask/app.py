@@ -1,6 +1,12 @@
 from flask import Flask, request, jsonify
 import os
 from recognize import describe_image
+import nltk
+from nltk.tokenize import word_tokenize
+from rank_bm25 import BM25Okapi
+import pandas as pd
+
+
 
 app = Flask(__name__)
 
@@ -21,6 +27,28 @@ def upload_file():
     
     print(response)
     return jsonify({'message': 'Search term generated', 'term': response})
+
+# Semantic search
+nltk.download("punkt", quiet=True)
+df = pd.read_csv("supermarkets.csv")
+items = df['name'].astype(str).tolist()
+tokenized_corpus = [word_tokenize(doc.lower()) for doc in items]
+bm25 = BM25Okapi(tokenized_corpus)
+
+@app.route('/search', methods=['GET'])
+def search_bm25():
+    query = request.args.get('query', '')
+    top_n = int(request.args.get('top_n', 5))
+    if not query:
+        return jsonify({"error": "Query parameter is required"}), 400
+    
+    tokenized_query = word_tokenize(query.lower())
+    scores = bm25.get_scores(tokenized_query)
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_n]
+    results = [{"rank": rank + 1, "text": items[idx]} for rank, idx in enumerate(top_indices)]
+    
+    return jsonify(results)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
