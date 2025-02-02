@@ -110,7 +110,7 @@ class CameraModel: NSObject, ObservableObject {
         var body = Data()
 
         // Append form-data boundary
-        let boundaryPrefix = "--(boundary)\r\n"
+        let boundaryPrefix = "--\(boundary)\r\n"
         body.append(boundaryPrefix.data(using: .utf8)!)
 
         let fileName = "image.jpg"
@@ -120,7 +120,7 @@ class CameraModel: NSObject, ObservableObject {
         body.append("\r\n".data(using: .utf8)!)
 
         // End boundary
-        body.append("--(boundary)--\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
         request.httpBody = body
         
