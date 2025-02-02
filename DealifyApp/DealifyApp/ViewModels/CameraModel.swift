@@ -81,11 +81,11 @@ class CameraModel: NSObject, ObservableObject {
         let image = UIImage(data: self.picData)!
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
         self.isSaved = true
-        uploadPic(image: image) 
+        uploadPic(image: image)
     }
     
     func uploadPic(image: UIImage) {
-        guard let url = URL(string: "https://dealify-n5sl.onrender.com/image") else { return }
+        guard let url = URL(string: "https://dealify-n5sl.onrender.com/upload") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
