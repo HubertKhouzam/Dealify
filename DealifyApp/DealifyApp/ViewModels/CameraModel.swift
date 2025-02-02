@@ -144,6 +144,10 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
         }
         
         guard let imageData = photo.fileDataRepresentation() else { return }
-        self.picData = imageData
+        DispatchQueue.main.async {
+                self.picData = imageData
+                self.isTaken = true
+                self.session.stopRunning() 
+            }
     }
 }

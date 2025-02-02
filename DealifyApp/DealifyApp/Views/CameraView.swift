@@ -14,10 +14,15 @@ struct CameraView: View {
     
     var body: some View {
         ZStack {
-            // Camera preview
-            CameraPreview(camera: camera)
-                .ignoresSafeArea()
-            
+            if camera.isTaken, let uiImage = UIImage(data: camera.picData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .ignoresSafeArea()
+            } else {
+                CameraPreview(camera: camera)
+                    .ignoresSafeArea()
+            }
             VStack {
                 // Top bar with close button
                 HStack {
