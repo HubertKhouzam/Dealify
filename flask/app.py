@@ -29,6 +29,7 @@ def upload_file():
     return jsonify({'message': 'Search term generated', 'term': response})
 
 # Semantic search
+nltk.download("punkt_tab", quiet=True)
 nltk.download("punkt", quiet=True)
 df = pd.read_csv("supermarkets.csv")
 items = df['name'].astype(str).tolist()
