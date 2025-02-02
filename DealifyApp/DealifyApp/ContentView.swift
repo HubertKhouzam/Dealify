@@ -257,7 +257,7 @@ struct DrawerView: View {
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(Color.black)
-                    .cornerRadius(10)
+                    .cornerRadius(30)
                 }
             }
             .padding()
