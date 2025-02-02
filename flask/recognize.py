@@ -4,9 +4,10 @@ import os
 from pathlib import Path
 
 # Initialize OpenAI client
-client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def describe_image(image_path):
+    client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
     try:
         if not Path(image_path).is_file():
             raise FileNotFoundError(f"Image file {image_path} not found")
@@ -47,9 +48,3 @@ def describe_image(image_path):
     except Exception as e:
         print(f"Error processing image: {str(e)}")
         return None
-
-if __name__ == "__main__":
-    image_path = "example1.jpg"
-    description = describe_image(image_path)
-    if description:
-        print(description)
