@@ -10,7 +10,7 @@ Dealify simplifies grocery shopping by helping you find the best prices across m
   <img src="static/IMG_0200.PNG" width="30%" hspace="10"/>
 </p>
 
---
+---
 
 ## Features
 
