@@ -10,6 +10,13 @@ Dealify simplifies grocery shopping by helping you find the best prices across m
   <img src="static/IMG_0200.PNG" width="30%" hspace="10"/>
 </p>
 
+--
+
+## Features
+
+- ✅ **Smart Price Comparison:** Automatically compares grocery prices across multiple locations in Montreal
+- ✅ **Instant Product Scanning:** Scan product tags to find the best available prices in real-time
+
 This repository contains a **full-stack application** with the following technologies:
 
 - **Front-end:** SwiftUI (iOS application)
@@ -18,13 +25,6 @@ This repository contains a **full-stack application** with the following technol
 - **Web Scraping:** Python (BeautifulSoup)
 
 The application provides seamless integration between a **SwiftUI front-end**, a **TypeScript-based API**, a **Flask microservice**, and a **web scraping module** that gathers real-time data.
-
----
-
-## Features
-
-- ✅ **Smart Price Comparison:** Automatically compares grocery prices across multiple locations in Montreal
-- ✅ **Instant Product Scanning:** Scan product tags to find the best available prices in real-time
 
 ---
 
