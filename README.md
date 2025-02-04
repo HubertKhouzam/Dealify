@@ -4,6 +4,12 @@
 
 Dealify simplifies grocery shopping by helping you find the best prices across multiple locations in Montreal. Instead of manually comparing prices, our platform does the research for you, ensuring you get the best deals effortlessly. With our real-time scanning feature, you can instantly check if a product is available at a lower price elsewhere by simply scanning its tag. Save money every week with minimal effort—let Dealify do the work for you!
 
+<p align="center">
+  <img src="static/homepage.png" width="30%" hspace="10"/>
+  <img src="static/price_list.png" width="30%" hspace="10"/>
+  <img src="static/IMG_0200.png" width="30%" hspace="10"/>
+</p>
+
 This repository contains a **full-stack application** with the following technologies:
 
 - **Front-end:** SwiftUI (iOS application)
